@@ -35,7 +35,7 @@
 
     let projection = d3.geoAlbersUsa()
         .translate([w / 2, h / 2])
-        .scale([1000]);
+        .scale([w * 0.8]);
 
     let path = d3.geoPath()
         .projection(projection);
@@ -131,9 +131,9 @@
                 .enter()
                 .append("path")
                 .attr("d", path)
-                .style("stroke", "#fff")
+                .style("stroke", "#00f")
                 .style("stroke-width", "1")
-                .attr("fill", "#00f");
+                .attr("fill", "#9ff");
 
             let CircleData = new Array();
             let circlenum = 0;

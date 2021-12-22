@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script>
+    let w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+    let h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+    w *= 0.98;
+    h *= 0.90;
+
+    let inner = {bottom: 50, top: 50, left: 50, right: 50};
+    let Data = new Array();
+    let DataEntry = new Array();
+    let idx = 20170501, sce = 0;
+    let ct = 0;
+    let H = (h - inner.top - inner.bottom);
+    let W = (w - inner.left - inner.right);
+
+    let projection = d3.geoAlbersUsa()
+        .translate([w / 2, h / 2])
+        .scale([w * 0.8]);
+
+    let path = d3.geoPath()
+        .projection(projection);
+
+    // 添加画布
+    let svg = d3.select("body")
+        .append("svg")
+        .attr("width", w)
+        .attr("height", h)
+        .append("g");
+
+    d3.json("us.json").then(function (e) {
+        let paths = svg.selectAll("path")
+            .data(e.features)
+            .enter()
+            .append("path")
+            .attr("d", path)
+            .style("stroke", "#00f")
+            .style("stroke-width", "1")
+            .attr("fill", "#cff");
+        // 解析csv数据
+        d3.csv("weather.csv").then(function (d) {
+            for (let i = 0; i < d.length; ++i) {
+                Data[ct++] = d[i];
+            }
+
+            trans();
+
+            move();
+        });
+
+
+        const mon = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30];
+
+        function add1day() {
+            idx++;
+            sce++;
+            if (idx > 20170915) {
+                idx = 20170101;
+                sce = 0;
+            }
+            let d = idx % 100;
+            let m = Math.floor(idx / 100) % 100;
+            if (d > mon[m]) {
+                d = 1;
+                m++;
+                idx = 2017 * 10000 + d + m * 100;
+            }
+        }
+
+        function trans() {
+            for (let i = 0; i < Data.length; ++i) {
+                Data[i].TMIN = (Data[i].TMIN - 32) / 1.8;
+                Data[i].TMAX = (Data[i].TMAX - 32) / 1.8;
+                Data[i].TAVG = (Data[i].TAVG - 32) / 1.8;
+                Data[i].AWND = Data[i].AWND / 0.6214;
+                Data[i].WSF5 = Data[i].WSF5 / 0.6214;
+                Data[i].SNOW = Data[i].SNOW * 2.54;
+                Data[i].SNWD = Data[i].SNWD * 2.54;
+                Data[i].PRCP *= 2.54;
+            }
+        }
+
+        function draw() {
+
+            Data.sort(function (a, b) {
+                return parseFloat(a.longitude) - parseFloat(b.longitude);
+            });
+
+            let A = new Array();
+            let ctA = 0;
+            for (let i = 0; i < ct; ++i) {
+                if (i === 0 || Data[i].station !== Data[i - 1].station) {
+                    if (i !== 0) {
+                        ++ctA;
+                    }
+                    A[ctA] = new Object();
+                    A[ctA] = Data[i];
+                } else A[ctA].PRCP += Data[i].PRCP;
+            }
+
+
+            svg.selectAll("circle")
+                .data(A)
+                .enter()
+                .append("circle")
+                .attr("transform", function (d) {
+                    let po = projection([d.longitude, d.latitude]);
+                    return "translate(" + po[0] + ", " + po[1] + ")";
+                })
+                .attr("r", function (d) {
+                    return d.PRCP / 10;
+                })
+                .attr("fill", function (d) {
+                    return 'rgb(0,0,' + (255 - parseInt(d.WSF5) * 0.5) + ')';
+                });
+
+        }
+
+        function move() {
+            Data.sort(function (a, b) {
+                if (a.date === b.date) return parseFloat(a.longitude) - parseFloat(b.longitude);
+                return parseInt(a.date) - parseInt(b.date);
+            });
+
+            let DataEntry = new Array();
+            let E = new Array();
+            let DataLine = new Array();
+            let cnt = 0;
+            let ctD = 0;
+            for (let i = 0; i < Data.length; ++i) {
+                if (i !== 0 && Data[i].date !== Data[i - 1].date) {
+                    DataEntry[cnt] = new Object();
+                    DataEntry[cnt] = E;
+                    E = new Array();
+                    cnt++;
+                    ctD = 0;
+                }
+                E[ctD] = new Object();
+                E[ctD] = Data[i];
+                ctD++;
+            }
+
+            svg.selectAll("ellipse")
+                .data(DataEntry[0])
+                .enter()
+                .append("ellipse")
+                .attr("transform", function (d) {
+                    let po = projection([d.longitude, d.latitude]);
+                    if (po === null) return "translate(" + -100000 + ", " + -10000 + ")";
+                    return "translate(" + po[0] + ", " + po[1] + ")";
+                })
+                .attr("rx", 3)
+                .attr("ry", 3)
+                .attr("stroke", "rgba(0,255,255,0.2)")
+                .attr("stroke-width", 0.3);
+
+            let comment = svg.append("text")
+                .text(function () {
+                    return idx;
+                })
+                .attr("x", w - 200)
+                .attr("y", h - 150)
+                .style("font-size", 40);
+
+            DataLine = DataEntry[sce];
+
+            let circles = svg.selectAll("circle")
+                .data(DataLine)
+                .enter()
+                .append("circle")
+                .attr("r", function (d) {
+                    return 1;
+                })
+                .attr("transform", function (d) {
+                    let po = projection([d.longitude, d.latitude]);
+                    if (po === null) return "translate(" + -100000 + ", " + -10000 + ")";
+                    return "translate(" + po[0] + ", " + po[1] + ")";
+                });
+
+
+            circles.transition()
+                .duration(600)
+                .attr("r", function (d) {
+                    return d.PRCP * 2.5;
+                })
+                .attr("fill", function (d) {
+                    return 'rgba(0,' + Math.max(0, (175 - parseInt(d.WSF5))) + ',' + (255) + ',0.8)';
+                });
+
+
+            setInterval(function () {
+                add1day();
+                update(idx);
+            }, 600);
+
+            function update(t) {
+                comment.text(idx);
+                updateElement();
+            }
+
+            function updateElement() {
+
+                svg.selectAll("circle")
+                    .data(DataEntry[sce], d => d.station)
+                    .transition()
+                    .duration(600)
+                    .attr("r", function (d) {
+                        return d.PRCP * 2.5;
+                    })
+                    .attr("fill", function (d) {
+                        return 'rgba(0,' + Math.max(0, (175 - parseInt(d.WSF5))) + ',' + (255) + ',0.8)';
+                    });
+            }
+        }
+    });
+</script>
+</body>
+</html>
