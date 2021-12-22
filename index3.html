@@ -20,6 +20,19 @@
     let H = (h - inner.top - inner.bottom);
     let W = (w - inner.left - inner.right);
 
+    function trans() {
+        for (let i = 0; i < Data.length; ++i) {
+            Data[i].TMIN = (Data[i].TMIN - 32) / 1.8;
+            Data[i].TMAX = (Data[i].TMAX - 32) / 1.8;
+            Data[i].TAVG = (Data[i].TAVG - 32) / 1.8;
+            Data[i].AWND = Data[i].AWND / 0.6214;
+            Data[i].WSF5 = Data[i].WSF5 / 0.6214;
+            Data[i].SNOW = Data[i].SNOW * 2.54;
+            Data[i].SNWD = Data[i].SNWD * 2.54;
+            Data[i].PRCP *= 2.54;
+        }
+    }
+
     // 添加画布
     let svg = d3.select("body")
         .append("svg")
@@ -29,25 +42,69 @@
 
     // 解析csv数据
     d3.csv("weather.csv").then(function (d) {
-        for (let i = 0; i < d.length; ++i) {
-            if (d[i].latitude >= 25 && d[i].latitude <= 55 &&
-                d[i].longitude <= -60 && d[i].longitude >= -130)
-                Data[ct++] = d[i];
-        }
+        d3.csv("AmericanStates.csv").then(function (d1) {
+            let States = new Array();
+            let c = 0;
 
-        trans();
+            for (let i = 0; i < d1.length; ++i) {
+                States[c++] = d1[i];
+            }
 
-        d3.selectAll("body")
-            .append("button")
-            .attr("type", "button")
-            .attr("onclick", 'draw()')
-            .text("show total PRCP");
+            function canfind(d) {
+                let find = 0;
+                for (let i = 0; i < c; ++i) {
+                    if (States[i].Short === d) find = 1;
+                }
+                return find;
+            }
 
-        d3.selectAll("body")
-            .append("button")
-            .attr("type", "button")
-            .attr("onclick", 'move()')
-            .text("show dynamic pic");
+            function ChangeStateName(d) {
+                for (let i = 0; i < c; ++i) {
+                    if (States[i].Short === d) return States[i].StateName;
+                }
+            }
+
+            for (let i = 0; i < d.length; ++i) {
+                if (canfind(d[i].state) === 1) {
+                    Data[ct] = d[i];
+                    Data[ct].state = ChangeStateName(Data[ct].state);
+                    ct++;
+                }
+            }
+
+            for (let i = 0; i < c; ++i) {
+                DataEntry[i] = new Array();
+                for (let j = 0; j <= 20170921 - 20170101; ++j)
+                    DataEntry[i][j] = {
+                        state: States[i].StateName,
+                        short: States[i].Short,
+                        date: j,
+                        site: 0.0,
+                        total: 0.0,
+                        average: 0.0
+                    };
+            }
+
+            trans();
+
+            for (let i = 0; i < ct; ++i) {
+                let b = parseInt(Data[i].date - 20170101);
+                let a = 0;
+                for (let j = 0; j < c; ++j) {
+                    if (Data[i].state === States[j]) {
+                        a = j;
+                        break;
+                    }
+                }
+                DataEntry[a][b].site = DataEntry[a][b].site + 1.0;
+                DataEntry[a][b].total += Data[i].PRCP;
+                DataEntry[a][b].average = DataEntry[a][b].total / DataEntry[a][b].site;
+            }
+            console.log(DataEntry);
+
+            // move();
+        })
+
     });
 
     svg.append("text")
@@ -62,7 +119,7 @@
     function add1day() {
         idx++;
         sce++;
-        if (idx > 20170915) {
+        if (idx > 20170921) {
             idx = 20170101;
             sce = 0;
         }
@@ -76,61 +133,6 @@
         }
     }
 
-    function trans() {
-        for (let i = 0; i < Data.length; ++i) {
-            Data[i].TMIN = (Data[i].TMIN - 32) / 1.8;
-            Data[i].TMAX = (Data[i].TMAX - 32) / 1.8;
-            Data[i].TAVG = (Data[i].TAVG - 32) / 1.8;
-            Data[i].AWND = Data[i].AWND / 0.6214;
-            Data[i].WSF5 = Data[i].WSF5 / 0.6214;
-            Data[i].SNOW = Data[i].SNOW * 2.54;
-            Data[i].SNWD = Data[i].SNWD * 2.54;
-            Data[i].PRCP *= 2.54;
-        }
-    }
-
-    function draw() {
-
-        Data.sort(function (a, b) {
-            return parseFloat(a.longitude) - parseFloat(b.longitude);
-        });
-
-        let A = new Array();
-        let ctA = 0;
-        for (let i = 0; i < ct; ++i) {
-            if (i === 0 || Data[i].station !== Data[i - 1].station) {
-                if (i !== 0) {
-                    ++ctA;
-                }
-                A[ctA] = new Object();
-                A[ctA] = Data[i];
-            } else A[ctA].PRCP += Data[i].PRCP;
-        }
-
-        console.log(Data);
-        console.log(A);
-
-        svg.selectAll("circle")
-            .data(A)
-            .enter()
-            .append("circle")
-            .attr("cx", function (d) {
-                return w - inner.right - ((d.longitude * (-1) - 60) / 70) * W;
-            })
-            .attr("cy", function (d) {
-                return h - inner.bottom - ((d.latitude - 25) / 30) * H;
-            })
-            .attr("r", function (d) {
-                return d.PRCP / 10;
-            })
-            .attr("fill", function (d) {
-                return 'rgb(0,0,' + (255 - parseInt(d.WSF5) * 0.5) + ')';
-            });
-
-        console.log(d3.max(Data, function (d) {
-            return d.PRCP;
-        }));
-    }
 
     function move() {
         Data.sort(function (a, b) {
