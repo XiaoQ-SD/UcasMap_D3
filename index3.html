@@ -11,12 +11,12 @@
     let h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
     w *= 0.98;
     h *= 0.90;
-
     let inner = {bottom: 50, top: 50, left: 50, right: 50};
     let Data = new Array();
     let DataEntry = new Array();
     let idx = 20170101, sce = 0;
     let ct = 0;
+    let c = 0;
     let H = (h - inner.top - inner.bottom);
     let W = (w - inner.left - inner.right);
 
@@ -33,6 +33,13 @@
         }
     }
 
+    let projection = d3.geoAlbersUsa()
+        .translate([w / 2, h / 2])
+        .scale([1000]);
+
+    let path = d3.geoPath()
+        .projection(projection);
+
     // 添加画布
     let svg = d3.select("body")
         .append("svg")
@@ -44,7 +51,6 @@
     d3.csv("weather.csv").then(function (d) {
         d3.csv("AmericanStates.csv").then(function (d1) {
             let States = new Array();
-            let c = 0;
 
             for (let i = 0; i < d1.length; ++i) {
                 States[c++] = d1[i];
@@ -102,17 +108,9 @@
             }
             console.log(DataEntry);
 
-            // move();
+            move();
         })
-
     });
-
-    svg.append("text")
-        .text("American weather")
-        .attr("x", w / 2)
-        .attr("y", 30)
-        .style("font-size", 25)
-        .attr("text-anchor", "middle");
 
     const mon = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30];
 
@@ -133,72 +131,72 @@
         }
     }
 
-
     function move() {
-        Data.sort(function (a, b) {
-            if (a.date === b.date) return parseFloat(a.longitude) - parseFloat(b.longitude);
-            return parseInt(a.date) - parseInt(b.date);
+
+        d3.json("us.json").then(function (d) {
+            console.log(d);
+            let paths = svg.selectAll("path")
+                .data(d.features)
+                .enter()
+                .append("path")
+                .attr("d", path)
+                .style("stroke", "#fff")
+                .style("stroke-width", "1")
+                .attr("fill", "#00f");
+
+            let CircleData = new Array();
+            let circlenum = 0;
+            Data.sort(function (a, b) {
+                if (a.longitude === b.longitude) return a.latitude - b.latitude;
+                return a.longitude - b.longitude;
+            });
+            for (let i = 0; i < ct; ++i) {
+                if (i === 0 || Data[i].latitude !== Data[i - 1].latitude || Data[i].longitude !== Data[i - 1].longitude)
+                    CircleData[circlenum++] = {
+                        lon: Data[i].longitude,
+                        lat: Data[i].latitude
+                    };
+            }
+
+            svg.selectAll("ellipse")
+                .data(CircleData)
+                .enter()
+                .append("ellipse")
+                .attr("transform", function (d) {
+                    let po = projection([d.lon, d.lat]);
+                    return "translate(" + po[0] + ", " + po[1] + ")";
+                })
+                .attr("rx", 2)
+                .attr("ry", 2)
+                .attr("stroke", "#09f");
+
+            let comment = svg.append("text")
+                .text(function () {
+                    return idx;
+                })
+                .attr("x", w - 200)
+                .attr("y", h - 150)
+                .style("font-size", 40);
+
+            paths.transition()
+                .duration(600)
+                .attr("fill", function (d) {
+                    console.log(d.properties.name);
+                    for (let i = 0; i < c; ++i) {
+                        if (DataEntry[i][0].state === d.properties.name) {
+                            console.log(DataEntry[i][0]);
+                        }
+                    }
+                });
         });
 
-        console.log(Data);
+        /*
 
-        let DataEntry = new Array();
-        let E = new Array();
-        let DataLine = new Array();
-        let cnt = 0;
-        let ctD = 0;
-        for (let i = 0; i < Data.length; ++i) {
-            if (i !== 0 && Data[i].date !== Data[i - 1].date) {
-                DataEntry[cnt] = new Object();
-                DataEntry[cnt] = E;
-                E = new Array();
-                // console.log(E);
-                cnt++;
-                ctD = 0;
-            }
-            E[ctD] = new Object();
-            E[ctD] = Data[i];
-            ctD++;
-        }
 
-        svg.selectAll("ellipse")
-            .data(DataEntry[0])
-            .enter()
-            .append("ellipse")
-            .attr("cx", function (d) {
-                return w - inner.right - ((d.longitude * (-1) - 60) / 70) * W;
-            })
-            .attr("cy", function (d) {
-                return h - inner.bottom - ((d.latitude - 25) / 30) * H;
-            })
-            .attr("rx", 3)
-            .attr("ry", 3)
-            .attr("fill", "white")
-            .attr("stroke", "black");
 
-        let comment = svg.append("text")
-            .text(function () {
-                return idx;
-            })
-            .attr("x", w - 200)
-            .attr("y", h - 150)
-            .style("font-size", 40);
 
-        DataLine = DataEntry[sce];
 
-        let circles = svg.selectAll("circle")
-            .data(DataLine)
-            .enter()
-            .append("circle")
-            .attr("r", function (d) {
-                return 1;
-            })
-            .attr("cx", function (d) {
-                return w - inner.right - (d.longitude * (-1) - 60) / 70 * W;
-            })
-            .attr("cy", function (d) {
-                return h - inner.bottom - (d.latitude - 25) / 30 * H;
-            });
+
 
 
         circles.transition()
@@ -237,6 +235,7 @@
                     return 'rgba(0,' + Math.max(0, (175 - parseInt(d.WSF5))) + ',' + (255) + ',0.8)';
                 });
         }
+        */
     }
 </script>
 </body>
