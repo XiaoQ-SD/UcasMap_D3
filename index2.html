@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>exp3</title>
+</head>
+<h4>
+    <center>Map Of Monthly Hours of Sunshine</center>
+</h4>
+<body>
+<div>
+
+</div>
+<script src="https://d3js.org/d3.v5.js"></script>
+<script>
+
+    let w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+    let h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+    w *= 0.98;
+    h *= 0.75;
+
+    let inner = {top: 50, right: 100, bottom: 50, left: 100};
+    let xScale, yScale;
+    let xAxis, yAxis;
+    let Data = new Array();
+
+    let svg = d3.select("body")
+        .append("svg")
+        .attr("width", w)
+        .attr("height", h)
+        .append("g");
+
+    // 构造比例尺
+    xScale = d3.scaleLinear()
+        .domain([1, 12])
+        .range([0, w - inner.left - inner.right])
+        .nice();
+
+    xAxis = d3.axisBottom(xScale);
+
+    yScale = d3.scaleLinear()
+        .domain([0, 400])
+        .range([h - inner.top - inner.bottom, 0])
+        .nice();
+
+    yAxis = d3.axisLeft(yScale);
+
+    // 解析csv数据
+    d3.csv("sunshine.csv").then(function (d) {
+        console.log(d);
+        Data = d;
+        draw();
+    });
+
+    function draw() {
+
+        svg.append("g")
+            .attr("transform", "translate(" + inner.left + "," + (h - inner.bottom) + ")")
+            .call(xAxis);
+
+        svg.append("g")
+            .attr("transform", "translate(" + inner.left + "," + inner.top + ")")
+            .call(yAxis);
+
+        let Color = new Array();
+        // let Len = new Array();
+        let H = h - inner.top - inner.bottom;
+        let LineData = new Array();
+        let City = new Array();
+        let ct = -1, p = 0;
+
+        // 画线函数
+        let Line = d3.line()
+            .x(function (d) {
+                return d.x;
+            })
+            .y(function (d) {
+                return d.y;
+            });
+
+        // 解析数据,获取城市名称,生成颜色,构造折线数据等
+        for (let i = 0; i < Data.length; ++i) {
+            if (i === 0 || Data[i].city !== Data[i - 1].city) {
+                ++ct;
+                City[ct] = Data[i].city;
+                Color[ct] = 'rgba(' + (((ct + 1) / 6) * 128) + ',' + (((ct + 1) / 6) * 255) + ',' + 255 + ',0.8)';
+                p = 0;
+                LineData[ct] = new Array();
+            }
+            LineData[ct][p] = ({
+                "x": (inner.left + ((w - inner.left - inner.right) / 11) * Data[i].monthnum),
+                "y": (-inner.bottom + h - H * (Data[i].sunshine) / 400)
+            });
+            ++p;
+        }
+
+        // console.log(Color);
+        for (let i = 0; i <= ct; ++i) {
+
+            // 绘制路径
+            svg.append("path")
+                .attr("d", Line(LineData[i]))
+                .attr("stroke", function () {
+                    return Color[i];
+                })
+                .attr("stroke-width", function () {
+                    return 3.5;
+                })
+                .attr("fill", "none");
+
+            // 用圆圈标记每个点的位置
+            svg.append("g")
+                .selectAll("circle")
+                .data(LineData[i])
+                .enter()
+                .append("circle")
+                .attr("fill", function (d) {
+                    return Color[i];
+                })
+                .attr("cx", function (d) {
+                    return d.x;
+                })
+                .attr("cy", function (d) {
+                    return d.y;
+                })
+                .attr("r", 3);
+        }
+
+        // 画线段函数
+        function drawLine(x1, y1, x2, y2, l = 1, c = "black") {
+            svg.append("line")
+                .attr("x1", x1)
+                .attr("y1", y1)
+                .attr("x2", x2)
+                .attr("y2", y2)
+                .attr("stroke-width", l)
+                .attr("stroke", c);
+        }
+
+        // 添加文本的函数
+        function drawText(x, y, s, l = '12px', c = 'black') {
+            svg.append('text')
+                .attr('x', x)
+                .attr('y', y)
+                .style('fill', c)
+                .style('font-size', l)
+                .text(s);
+        }
+
+        drawText(w - inner.right * 0.9, h - inner.bottom * 0.9, 'monthnum');
+        drawText(inner.left * 0.75, 0.6 * inner.bottom, 'sunshine');
+
+        // 右上角添加图例以及文字说明
+        for (let i = 0; i <= 5; ++i) {
+            drawLine(w - inner.right - 100, inner.bottom + i * 15,
+                w - inner.right - 50, inner.bottom + i * 15, 2, Color[i]);
+            let str;
+            if (i === 0) str = 47.61;
+            if (i === 1) str = 41.88;
+            if (i === 2) str = 40.73;
+            if (i === 3) str = 37.73;
+            if (i === 4) str = 29.74;
+            if (i === 5) str = 25.76;
+            drawText(w - inner.right - 40, inner.bottom + i * 15, City[i] + " / " + str);
+        }
+
+        drawText(w - inner.right - 75, 0.5 * inner.bottom, 'City/Latitude', '15px');
+    }
+
+</script>
+</body>
+</html>

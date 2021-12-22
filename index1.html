@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>7</title>
+</head>
+<body>
+<script src="https://d3js.org/d3.v5.js"></script>
+<script>
+
+    let w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+    let h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+    w *= 0.98;
+    h *= 0.90;
+
+    let inner = {top: 100, right: 100, bottom: 50, left: 200};
+    let xScale, xAxis;
+    let DataEntry = new Array();
+    let Data = new Array();
+    let H = (h - inner.bottom - inner.top) / 6 * 0.95;
+    let Color = new Array();
+
+    // 随机生成每个城市的代表颜色
+    for (let i = 0; i < 6; ++i) {
+        Color[i] = 'rgba(' + Math.random() * 255 + ',' + Math.random() * 255 + ',' + Math.random() * 255 + ',' + 0.8 + ')';
+    }
+
+    // 添加画布
+    let svg = d3.select("body")
+        .append("svg")
+        .attr("width", w)
+        .attr("height", h)
+        .append("g");
+
+    // 构造比例尺
+    xScale = d3.scaleLinear()
+        .domain([0, 350])
+        .range([0, w - inner.left - inner.right])
+        .nice();
+
+    xAxis = d3.axisBottom(xScale);
+
+    svg.append("g")
+        .attr("transform", "translate(" + inner.left + "," + (h - inner.bottom - 40) + ")")
+        .call(xAxis);
+
+    // 月份循环变量
+    let idx = 0;
+
+    // 解析csv数据
+    d3.csv("sunshine.csv").then(function (d) {
+        Data = d;
+        // 首先按月份排序
+        Data.sort(function (a, b) {
+            return a.monthnum - b.monthnum;
+        });
+        console.log(Data);
+        draw();
+    });
+
+    function draw() {
+
+        //右下方数值，表示月份
+        let comment = svg.append("text")
+            .attr("x", w - inner.right - inner.right)
+            .attr("y", h - inner.bottom - inner.bottom - 40)
+            .attr("fill", "black")
+            .text(function () {
+                return Data[idx].month;
+            })
+            .style("font-size", "40");
+
+        // 添加该月份的所有的城市信息
+        for (let i = 0; i < 6; ++i)
+            DataEntry.push(Data[idx * 6 + i]);
+        DataEntry.sort(function (a, b) {
+            return b.sunshine - a.sunshine;
+        });
+        // console.log(DataEntry);
+
+        // 绑定该年的数据
+        const groups = svg.selectAll("g")
+            .data(DataEntry).enter()
+            .append("g");
+
+        // 生成标签和矩形
+        let labels = groups.data(DataEntry)
+            .enter().append("text")
+            .text(d => d.city)
+            .attr("x", function (d, i) {
+                return inner.left - 10;
+            })
+            .style("font-size", 20)
+            .attr("text-anchor", "end");
+
+        let rects = groups.data(DataEntry)
+            .enter().append("rect")
+            .attr("x", inner.left)
+            .attr("height", H * 0.65)
+            .attr("fill", function (d, i) {
+                return Color[i];
+            })
+            .attr("width", function (d) {
+                return xScale(d.sunshine);
+            });
+
+        // 设定更新函数
+        function UpdateElement() {
+
+            // 通过data指定绑定的键值
+            labels.data(DataEntry, d => d.city)
+                .transition()
+                .duration(600)
+                .attr("y", function (d, i) {
+                    return i * H + inner.bottom + 40;
+                });
+
+            rects.data(DataEntry, d => d.city)
+                .transition()
+                .duration(600)
+                .attr("y", function (d, i) {
+                    return i * H + inner.bottom;
+                })
+                .attr("width", function (d) {
+                    return xScale(d.sunshine);
+                });
+        }
+
+        UpdateElement();
+
+        // 更新函数
+        function update(t) {
+            let W = new Array();
+            for (let i = 0; i < 6; ++i)
+                W.push(Data[t * 6 + i]);
+            W.sort(function (a, b) {
+                return b.sunshine - a.sunshine;
+            });
+            DataEntry = W;
+            comment.text(DataEntry[0].month);
+            UpdateElement();
+        }
+
+        // 调用更新函数,每0.7s更新一次
+        setInterval(function () {
+            update((++idx) % 12);
+        }, 700);
+    }
+
+    svg.append("text")
+        .text("Monthly Hours of Sunshine")
+        .attr("x", w / 2)
+        .attr("y", 30)
+        .style("font-size", 25)
+        .attr("text-anchor", "middle");
+
+</script>
+</body>
+</html>
