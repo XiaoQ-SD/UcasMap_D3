@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div class="Post-RichTextContainer">
+    <div class="css-1yuhvjn">
+        <div class="RichText ztext Post-RichText css-hnrfcf" options="[object Object]"><p data-pid="Q35Hxn_f">
+            前言：笔者在网上找资料时感觉网络上对于ANOVA解释大多都仅仅停留在如何计算F-statistic，或者如何用R, SAS,
+            Python实现ANOVA，却鲜有对ANOVA解释。写这篇文章就是希望能给ANOVA一个通俗的解释，让即便是非数学，非统计出身的同学们也能直观的理解他。</p>
+            <p data-pid="AbgiRmCt">本文将主要讲单因素方差分析（one-way ANOVA)，以后再慢慢讲多因素和其他。</p>
+            <p data-pid="PS5EyDM1">
+                首先来说说我们为什么要用ANOVA。在做一些实验时，我们通常会把样本分成不同的组，给予不同的对待。例如，我们想研究某种药物在不同剂量下对人们的作用。我们可能会将病人随机分为同等大小的三组，A组每天吃一片，B组每天吃两片，C组每天吃三片。因为我们只研究这个药品计量对病人的影响，所以是单因素分析，如果想要加入别的因素，例如，年龄，就需要用到多因素分析了。在上述实验中，我们给了三种不同的计量，所以这个药物计量因素下有三个水平（level）。实验结束以后，你老板问你，这三组病人的表现有显著的区别吗？这个时候，你就可以使用ANOVA来回答你老板的问题啦。</p>
+            <p data-pid="VWlZ9MEO">虽然ANOVA叫做方差分析，但是他的目的是<b>检验每个组的平均数是否相同</b>（敲黑板！）。也就是说，ANOVA的零假设（null hypothesis）是 <img
+                    src="https://www.zhihu.com/equation?tex=H_0%3A+%5Cmu_A+%3D+%5Cmu_B+%3D+%5Cmu_C" alt="[公式]" eeimg="1"
+                    data-formula="H_0: \mu_A = \mu_B = \mu_C">
+                。现在，我们换一个角度考虑这个问题，如果这三组病人的表现并没有显著的区别，那他们其实是同一个总体的三次随机抽样。反过来说，我们想要分析，是不是有一组病人他们的表现非常与众不同，让这组病人不是来自同一个总体。
+            </p>
+            <p data-pid="cijMBM7C">
+                在具体说如何理解ANOVA之前，我们先来说ANOVA有哪些假设。如果你的实验不能满足ANOVA的假设，那你需要考虑别的分析方法或者改变实验设计。ANOVA有主要有以下3个假设：</p>
+            <ol>
+                <li data-pid="TbWw-2HE">方差的同质性（homogeneity of variance）。可以理解为每组样本背后的总体（也叫族群）都有相同的方差；</li>
+                <li data-pid="T2LUgLH8">族群遵循正态分布；</li>
+                <li data-pid="sVRdoi1I">每一次抽样都是独立的。在我们的例子中，每一个病人只能提供一个数据。对于一些实验一个样本需要提供多个数据，有其他相应的ANOVA分析方法。</li>
+            </ol>
+            <p data-pid="qsP8b3o0">假设我们得到的结果是这样的：</p>
+            <figure data-size="normal">
+                <noscript><img src="https://pic1.zhimg.com/v2-3979bc8df2c120d2515c1823104d9c94_b.jpg"
+                               data-rawwidth="1170" data-rawheight="680" data-size="normal" data-caption=""
+                               class="origin_image zh-lightbox-thumb" width="1170"
+                               data-original="https://pic1.zhimg.com/v2-3979bc8df2c120d2515c1823104d9c94_r.jpg"/>
+                </noscript>
+                <img src="https://pic1.zhimg.com/80/v2-3979bc8df2c120d2515c1823104d9c94_1440w.jpg" data-rawwidth="1170"
+                     data-rawheight="680" data-size="normal" data-caption="" class="origin_image zh-lightbox-thumb lazy"
+                     width="1170" data-original="https://pic1.zhimg.com/v2-3979bc8df2c120d2515c1823104d9c94_r.jpg"
+                     data-actualsrc="https://pic1.zhimg.com/v2-3979bc8df2c120d2515c1823104d9c94_b.jpg"
+                     data-lazy-status="ok"></figure>
+            <p data-pid="QVyAnYIe">现在，我们终于可以来看方差分析。ANOVA中有两个重要概念：组间均方（mean squared between,
+                MSB），相当于每个族群相对于总体的方差；组内均方（mean squared error, MSE），也就是每个分布自身的方差。下图是这两个概念的一个图像化的理解： </p>
+            <figure data-size="normal">
+                <noscript><img src="https://pic2.zhimg.com/v2-25030ed4eae7894cfdc4370325383bb5_b.jpg"
+                               data-rawwidth="2066" data-rawheight="674" data-size="normal" data-caption=""
+                               class="origin_image zh-lightbox-thumb" width="2066"
+                               data-original="https://pic2.zhimg.com/v2-25030ed4eae7894cfdc4370325383bb5_r.jpg"/>
+                </noscript>
+                <img src="https://pic2.zhimg.com/80/v2-25030ed4eae7894cfdc4370325383bb5_1440w.jpg" data-rawwidth="2066"
+                     data-rawheight="674" data-size="normal" data-caption="" class="origin_image zh-lightbox-thumb lazy"
+                     width="2066" data-original="https://pic2.zhimg.com/v2-25030ed4eae7894cfdc4370325383bb5_r.jpg"
+                     data-actualsrc="https://pic2.zhimg.com/v2-25030ed4eae7894cfdc4370325383bb5_b.jpg"
+                     data-lazy-status="ok"></figure>
+            <p data-pid="-Gndde-v">有了一个直观的理解以后，我们可以开始说如何计算这两个变量。简单来说，MSE是每组方差的平均值。假设我们的数据是这样：</p>
+            <figure data-size="normal">
+                <noscript><img src="https://pic1.zhimg.com/v2-cefaa1d127466f05954db2f3015ff880_b.jpg"
+                               data-rawwidth="1060" data-rawheight="238" data-size="normal" data-caption=""
+                               class="origin_image zh-lightbox-thumb" width="1060"
+                               data-original="https://pic1.zhimg.com/v2-cefaa1d127466f05954db2f3015ff880_r.jpg"/>
+                </noscript>
+                <img src="https://pic1.zhimg.com/80/v2-cefaa1d127466f05954db2f3015ff880_1440w.jpg" data-rawwidth="1060"
+                     data-rawheight="238" data-size="normal" data-caption="" class="origin_image zh-lightbox-thumb lazy"
+                     width="1060" data-original="https://pic1.zhimg.com/v2-cefaa1d127466f05954db2f3015ff880_r.jpg"
+                     data-actualsrc="https://pic1.zhimg.com/v2-cefaa1d127466f05954db2f3015ff880_b.jpg"
+                     data-lazy-status="ok"></figure>
+            <p data-pid="dPiTsXB-">从图中可以看出，MSE来自各组的平均数。所以， <img
+                    src="https://www.zhihu.com/equation?tex=MSE+%3D+%5Cfrac%7B%5Csigma%5E2_A%2B%5Csigma%5E2_B%2B%5Csigma%5E2_C%7D%7Bk%7D%3D%5Cfrac%7B1.5%2B1.3%2B0.8%7D%7B3%7D%3D1.2"
+                    alt="[公式]" eeimg="1"
+                    data-formula="MSE = \frac{\sigma^2_A+\sigma^2_B+\sigma^2_C}{k}=\frac{1.5+1.3+0.8}{3}=1.2"></p>
+            <p data-pid="eaYilm-H">
+                同样，看图发现，MSB来自各组平均值的方差。前面说过，如果这三组数据并无显著差别，我们可以将这个实验理解为从同一总体中，随机抽取三组样本。MSB就是总体的方差估计。我们知道，抽样分布的平均值方差是总体方差除以样本大小，即
+                <img src="https://www.zhihu.com/equation?tex=%5Csigma%5E2_%7B%5Cmu%7D%3D%5Cfrac%7B%5Csigma%5E2%7D%7Bn%7D"
+                     alt="[公式]" eeimg="1" data-formula="\sigma^2_{\mu}=\frac{\sigma^2}{n}"> 。假设，A，B，C都有34人，</p>
+            <p data-pid="PHRlOdRE"><img
+                    src="https://www.zhihu.com/equation?tex=%5Cmu+%3D+%5Cfrac%7B%5Cmu_A%2B%5Cmu_B%2B%5Cmu_C%7D%7Bk%7D%3D1.667%2C+%5Csigma%5E2_%7B%5Cmu%7D+%3D0.023"
+                    alt="[公式]" eeimg="1" data-formula="\mu = \frac{\mu_A+\mu_B+\mu_C}{k}=1.667, \sigma^2_{\mu} =0.023">，
+            </p>
+            <p data-pid="Vpy3y3vC"><img
+                    src="https://www.zhihu.com/equation?tex=MSB%3D%5Csigma%5E2%3Dn%5Csigma%5E2_%7B%5Cmu%7D%3D34%5Ctimes0.023%3D0.782+"
+                    alt="[公式]" eeimg="1" data-formula="MSB=\sigma^2=n\sigma^2_{\mu}=34\times0.023=0.782 "></p>
+            <p data-pid="LwLk5uD4">最后我们需要做的，就是对比组间均方（MSB）和组内均方（MSE）。最简单的对比方法就是把他们相除，也就是我们常说的F-statistics，即 <img
+                    src="https://www.zhihu.com/equation?tex=F%3D%5Cfrac%7BMSB%7D%7BMSE%7D" alt="[公式]" eeimg="1"
+                    data-formula="F=\frac{MSB}{MSE}"> 。</p>
+            <p data-pid="dbrorjjJ">我们来思考一下，这样的对比会有哪些结果：</p>
+            <p data-pid="0QyXr-9F">第一种，MSB大，MSE小， <img
+                    src="https://www.zhihu.com/equation?tex=F%3D%5Cfrac%7B%5Cbold%7BMSB%7D%7D%7BMSE%7D" alt="[公式]"
+                    eeimg="1" data-formula="F=\frac{\bold{MSB}}{MSE}">
+                较大。这个情况说明，至少有一个分布相对其他分布较远，且每个分布都非常集中，即每个分布方差较小。所以，我们不能得出三个分布都有相同的均值，于是拒绝 <img
+                        src="https://www.zhihu.com/equation?tex=H_0" alt="[公式]" eeimg="1" data-formula="H_0">
+                。一个极端的例子和一个更极端的例子：</p>
+            <figure data-size="normal">
+                <noscript><img src="https://pic4.zhimg.com/v2-c1c03d3707f81c0a5e878683c9c678f7_b.jpg"
+                               data-rawwidth="1550" data-rawheight="450" data-size="normal" data-caption=""
+                               class="origin_image zh-lightbox-thumb" width="1550"
+                               data-original="https://pic4.zhimg.com/v2-c1c03d3707f81c0a5e878683c9c678f7_r.jpg"/>
+                </noscript>
+                <img src="https://pic4.zhimg.com/80/v2-c1c03d3707f81c0a5e878683c9c678f7_1440w.jpg" data-rawwidth="1550"
+                     data-rawheight="450" data-size="normal" data-caption="" class="origin_image zh-lightbox-thumb lazy"
+                     width="1550" data-original="https://pic4.zhimg.com/v2-c1c03d3707f81c0a5e878683c9c678f7_r.jpg"
+                     data-actualsrc="https://pic4.zhimg.com/v2-c1c03d3707f81c0a5e878683c9c678f7_b.jpg"
+                     data-lazy-status="ok"></figure>
+            <p data-pid="7Ik582U9">第二种，MSB小，MSE大， <img
+                    src="https://www.zhihu.com/equation?tex=F%3D%5Cfrac%7BMSB%7D%7B%5Cbold%7BMSE%7D%7D" alt="[公式]"
+                    eeimg="1" data-formula="F=\frac{MSB}{\bold{MSE}}">
+                较小。这个情况有两种可能，当然也可以是这两种可能的混合。一是每组的平均值都相对集中，二是每组的方差很大，导致我们无法把每组分开。所以我们无法拒绝零假设。两个极端的例子：</p>
+            <figure data-size="normal">
+                <noscript><img src="https://pic1.zhimg.com/v2-7cf89bd986ef109da0f9f4e283a83b18_b.jpg"
+                               data-rawwidth="1636" data-rawheight="500" data-size="normal" data-caption=""
+                               class="origin_image zh-lightbox-thumb" width="1636"
+                               data-original="https://pic1.zhimg.com/v2-7cf89bd986ef109da0f9f4e283a83b18_r.jpg"/>
+                </noscript>
+                <img src="https://pic1.zhimg.com/80/v2-7cf89bd986ef109da0f9f4e283a83b18_1440w.jpg" data-rawwidth="1636"
+                     data-rawheight="500" data-size="normal" data-caption="" class="origin_image zh-lightbox-thumb lazy"
+                     width="1636" data-original="https://pic1.zhimg.com/v2-7cf89bd986ef109da0f9f4e283a83b18_r.jpg"
+                     data-actualsrc="https://pic1.zhimg.com/v2-7cf89bd986ef109da0f9f4e283a83b18_b.jpg"
+                     data-lazy-status="ok"></figure>
+            <p data-pid="sSnjHENg">第三种，MSB <img src="https://www.zhihu.com/equation?tex=%5Capprox" alt="[公式]" eeimg="1"
+                                                data-formula="\approx"> MSE， <img
+                    src="https://www.zhihu.com/equation?tex=F%3D%5Cfrac%7BMSB%7D%7BMSE%7D" alt="[公式]" eeimg="1"
+                    data-formula="F=\frac{MSB}{MSE}">
+                较小。这个时候MSB和MSE比较balance，可能是每组的平均值很集中，且每组方差很小；或者每组的方差较大，平均值也都离的不太远。总之，我们无法很好的剥离出某一组的分布。所以，我们同样无法拒绝零假设。以下是两个普通的例子：
+            </p>
+            <figure data-size="normal">
+                <noscript><img src="https://pic1.zhimg.com/v2-a129ab7c7dd26bd92a9dfb0ca8f82fdc_b.jpg"
+                               data-rawwidth="1478" data-rawheight="520" data-size="normal" data-caption=""
+                               class="origin_image zh-lightbox-thumb" width="1478"
+                               data-original="https://pic1.zhimg.com/v2-a129ab7c7dd26bd92a9dfb0ca8f82fdc_r.jpg"/>
+                </noscript>
+                <img src="https://pic1.zhimg.com/80/v2-a129ab7c7dd26bd92a9dfb0ca8f82fdc_1440w.jpg" data-rawwidth="1478"
+                     data-rawheight="520" data-size="normal" data-caption="" class="origin_image zh-lightbox-thumb lazy"
+                     width="1478" data-original="https://pic1.zhimg.com/v2-a129ab7c7dd26bd92a9dfb0ca8f82fdc_r.jpg"
+                     data-actualsrc="https://pic1.zhimg.com/v2-a129ab7c7dd26bd92a9dfb0ca8f82fdc_b.jpg"
+                     data-lazy-status="ok"></figure>
+            <p data-pid="q5zfIg-n">以上是对ANOVA的一个总体的理解。接下来说说具体说说如何通过F-statistics来计算P值，从而量化我们的决定。</p>
+            <p data-pid="fQKPKYwy">我们知道，F分布有两个重要的参数： <img src="https://www.zhihu.com/equation?tex=d_1" alt="[公式]"
+                                                          eeimg="1" data-formula="d_1"> 和 <img
+                    src="https://www.zhihu.com/equation?tex=d_2" alt="[公式]" eeimg="1" data-formula="d_2">
+                ，分别代表分子的自由度和分母的自由度。一般来说，样本方差估计的自由度是 <img src="https://www.zhihu.com/equation?tex=N-1" alt="[公式]"
+                                                         eeimg="1" data-formula="N-1">
+                。在ANOVA中，我们已经知道分子是组间均方，在上述例子中我们有3组数据，所以分子的自由度为2。分母是组内均方，因为每组都有34位病人，分母的自由度为 <img
+                        src="https://www.zhihu.com/equation?tex=3%5Ctimes%2834-1%29%3D99" alt="[公式]" eeimg="1"
+                        data-formula="3\times(34-1)=99"> 。现在我们有了所有的数据，大家只需通过查表就可以确定p值了。</p>
+            <p data-pid="m-JELuXx"><img
+                    src="https://www.zhihu.com/equation?tex=d_%7Bnumerator%7D++%3D+k-1%3D2%2C+d_%7Bdenominator%7D+%3D+k%28n-1%29%3DN-k%3D99+"
+                    alt="[公式]" eeimg="1" data-formula="d_{numerator}  = k-1=2, d_{denominator} = k(n-1)=N-k=99 "></p>
+            <p data-pid="oBq44h1z"><img
+                    src="https://www.zhihu.com/equation?tex=F%3D%5Cfrac%7BMSB%7D%7BMSE%7D%3D0.65%2C+p%3D0.52" alt="[公式]"
+                    eeimg="1" data-formula="F=\frac{MSB}{MSE}=0.65, p=0.52"></p>
+            <p data-pid="3k3BR5rU">很明显，由于p值很大，所以我们无法拒绝零假设，也就是说ANOVA的结果告诉我们三组平均值相同。</p>
+            <p data-pid="tGKJfs67">看到这里，想必大家也明白了，ANOVA就是把方差拆成两个部分进行对比。为什么要拆成这两部分呢？在我们的实验中，导致每个病人数据不同的原因主要有两方面：</p>
+            <ol>
+                <li data-pid="ULsiAN5o"> 我们给病人不同的药物剂量；</li>
+                <li data-pid="F24f8l3U"> 病人本身不同，比如年轻的病人代谢速度快，有些病人对这个药物比较敏感，等等。</li>
+            </ol>
+            <p data-pid="BAcPIGsb">第一种不同，我们称之为组间变量，第二种称为组内变量。我们主要关心的是组间变量，病人个体的不同或者其他随机因素导致结果不同我们统统称之为误差。</p>
+            <p data-pid="k48uv95Z">在ANOVA中，组间变量我们称之为 <img src="https://www.zhihu.com/equation?tex=SS_%7Btreatments%7D"
+                                                          alt="[公式]" eeimg="1" data-formula="SS_{treatments}"> ，组内变量为
+                <img src="https://www.zhihu.com/equation?tex=SS_%7Berror%7D" alt="[公式]" eeimg="1"
+                     data-formula="SS_{error}"> 。两者之和为总变量，<img
+                        src="https://www.zhihu.com/equation?tex=SS_%7Btotal%7D+%3D+SS_%7Btreatments%7D%2BSS_%7Berror%7D"
+                        alt="[公式]" eeimg="1" data-formula="SS_{total} = SS_{treatments}+SS_{error}">
+                。同样的道理，我们也可以将自由度分为两个部分，即 <img
+                        src="https://www.zhihu.com/equation?tex=DF_%7Btotal%7D%3DDF_%7Btreatments%7D%2BDF_%7Berror%7D"
+                        alt="[公式]" eeimg="1" data-formula="DF_{total}=DF_{treatments}+DF_{error}"> 。</p>
+            <p data-pid="s59Yci-k">我们知道，计算样本方差的公式为：</p>
+            <p data-pid="GvHN3BfL"><img
+                    src="https://www.zhihu.com/equation?tex=s%5E2%3D%5Cfrac%7B%5Csum%28x_i-%5Cbar%7Bx%7D%29%5E2%7D%7Bn-1%7D"
+                    alt="[公式]" eeimg="1" data-formula="s^2=\frac{\sum(x_i-\bar{x})^2}{n-1}"></p>
+            <p data-pid="JjObyVzM">这个式子的分子是一个平方和（sum of squares, ss），分母则是自由度（degree of freedom, df），这两个值相除的也就是均方（mean
+                square, ms）。</p>
+            <p data-pid="VcMb4nOr">所以，F也可以看作：</p>
+            <p data-pid="FJO3O2e8"><img
+                    src="https://www.zhihu.com/equation?tex=F%3D%5Cfrac%7B%E7%BB%84%E9%97%B4%E5%8F%98%E5%8C%96%7D%7B%E7%BB%84%E5%86%85%E5%8F%98%E5%8C%96%7D%3D%5Cfrac%7BSS_%7Btreatments%7D%2FDF_%7Btreatments%7D%7D%7BSS_%7Berror%7D%2FDF_%7Berror%7D%7D%3D%5Cfrac%7BMSB%7D%7BMSE%7D"
+                    alt="[公式]" eeimg="1"
+                    data-formula="F=\frac{组间变化}{组内变化}=\frac{SS_{treatments}/DF_{treatments}}{SS_{error}/DF_{error}}=\frac{MSB}{MSE}">
+            </p>
+            <p data-pid="Qa9Ok9Kt">这也解释了为什么，MSB是来自每组平均值的方差，而MSE是来自每组方差的平均值。</p>
+            <p data-pid="-dUzdIxg">
+                写在最后：在看资料的过程中，我发现统计学教授们太喜欢给同一个东西不同的名字，本文出现的标记都是我在学习的时候习惯用的。不过万变不离其宗，只要能理解方差分析的原理和逻辑，各种变量叫什么名字都可以。</p>
+            <hr>
+            <p data-pid="mIGamozD">Reference:</p>
+            <p data-pid="HBFr_yi1">Photographer,Allen Versfeld. (30 Apr, 2013).Stellar Remnant. Retrieved from <a
+                    href="https://link.zhihu.com/?target=https%3A//www.urban-astronomer.com/astronomy/nova-and-supernova/"
+                    class=" external" target="_blank" rel="nofollow noreferrer" data-za-detail-view-id="1043"><span
+                    class="invisible">https://www.</span><span class="visible">urban-astronomer.com/as</span><span
+                    class="invisible">tronomy/nova-and-supernova/</span><span class="ellipsis"></span></a></p>
+            <p data-pid="hdpED7X5">One-Factor ANOVA (Between Subjects). Retrieved from <a
+                    href="https://link.zhihu.com/?target=http%3A//onlinestatbook.com/2/analysis_of_variance/one-way.html"
+                    class=" external" target="_blank" rel="nofollow noreferrer" data-za-detail-view-id="1043"><span
+                    class="invisible">http://</span><span class="visible">onlinestatbook.com/2/an</span><span
+                    class="invisible">alysis_of_variance/one-way.html</span><span class="ellipsis"></span></a></p>
+            <p data-pid="nRMV9wVd">Analysis of variance. (2019, February 04). Retrieved from <a
+                    href="https://link.zhihu.com/?target=https%3A//en.wikipedia.org/wiki/Analysis_of_variance"
+                    class=" external" target="_blank" rel="nofollow noreferrer"><span
+                    class="invisible">https://</span><span class="visible">en.wikipedia.org/wiki/A</span><span
+                    class="invisible">nalysis_of_variance</span><span class="ellipsis"></span></a></p></div>
+    </div>
+</div>
+</body>
+</html>
